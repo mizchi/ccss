@@ -35,7 +35,7 @@ ccss.render = (rules) ->
         declarations += "  #{key}: #{value};\n"
 
     declarations and css += "#{selector} {\n#{declarations}}\n"
-    css += ccss.compile nested
+    css += ccss.render nested
   css
 
 unless window
