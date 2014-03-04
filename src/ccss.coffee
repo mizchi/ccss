@@ -1,11 +1,16 @@
-fs = require 'fs'
+if window?
+  ccss = window.ccss = {}
+  fs = null
+else
+  ccss = exports
+  fs = require 'fs'
 
-extend = (object, properties) ->
+ccss.extend = (object, properties) ->
   for key, value of properties
     object[key] = value
   object
 
-@compile = (rules) ->
+ccss.render = (rules) ->
   css = ''
 
   for selector, pairs of rules
@@ -16,7 +21,7 @@ extend = (object, properties) ->
     if {mixins} = pairs
       delete pairs.mixins
       for mixin in [].concat mixins
-        extend pairs, mixin
+        ccss.extend pairs, mixin
 
     #a pair is either a css declaration, or a nested rule
     for key, value of pairs
@@ -31,13 +36,12 @@ extend = (object, properties) ->
         declarations += "  #{key}: #{value};\n"
 
     declarations and css += "#{selector} {\n#{declarations}}\n"
-
     css += @compile nested
-
   css
 
-@compileFile = (infile, outfile) ->
-  rules = require process.cwd() + '/' + infile
-  css = @compile rules
-  outfile or= infile.replace /coffee$/, 'css'
-  fs.writeFileSync outfile, css
+unless window
+  ccss.compileFile = (infile, outfile) ->
+    rules = require process.cwd() + '/' + infile
+    css = ccss.render rules
+    outfile or= infile.replace /coffee$/, 'css'
+    fs.writeFileSync outfile, css
