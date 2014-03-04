@@ -1,42 +1,48 @@
 if window?
-  ccss = window.ccss = ->
-    ccss.render arguments...
+  ccss = window.ccss = (pairs) ->
+    ccss.inline pairs
 else
   ccss = exports
+
+ccss.inline = (pairs) ->
+  (for key, value of pairs
+    #borderRadius -> border-radius
+    key = key.replace /[A-Z]/g, (s) -> '-' + s.toLowerCase()
+    " #{key}: #{value};\n"
+  ).join ''
 
 ccss.extend = (object, properties) ->
   for key, value of properties
     object[key] = value
   object
 
+ccss.toCSS = (selector, pairs) ->
+  declarations = ''
+  nested = {}
+
+  #add mixins to the current level
+  if {mixins} = pairs
+    delete pairs.mixins
+    for mixin in [].concat mixins
+      ccss.extend pairs, mixin
+
+  #a pair is either a css declaration, or a nested rule
+  for key, value of pairs
+    if typeof value is 'object'
+      children = []
+      split = key.split /\s*,\s*/
+      children.push "#{selector} #{child}" for child in split
+      nested[children.join ','] = value
+    else
+      #borderRadius -> border-radius
+      key = key.replace /[A-Z]/g, (s) -> '-' + s.toLowerCase()
+      declarations += "  #{key}: #{value};\n"
+
+  declarations and css += "#{selector} {\n#{declarations}}\n"
+  ccss.render nested
+
 ccss.render = (rules) ->
-  css = ''
-
-  for selector, pairs of rules
-    declarations = ''
-    nested = {}
-
-    #add mixins to the current level
-    if {mixins} = pairs
-      delete pairs.mixins
-      for mixin in [].concat mixins
-        ccss.extend pairs, mixin
-
-    #a pair is either a css declaration, or a nested rule
-    for key, value of pairs
-      if typeof value is 'object'
-        children = []
-        split = key.split /\s*,\s*/
-        children.push "#{selector} #{child}" for child in split
-        nested[children.join ','] = value
-      else
-        #borderRadius -> border-radius
-        key = key.replace /[A-Z]/g, (s) -> '-' + s.toLowerCase()
-        declarations += "  #{key}: #{value};\n"
-
-    declarations and css += "#{selector} {\n#{declarations}}\n"
-    css += ccss.render nested
-  css
+  (ccss.toCSS(selector, pairs) for selector, pairs of rules).join('')
 
 unless window
   fs = require 'fs'
