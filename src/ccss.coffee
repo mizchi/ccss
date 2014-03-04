@@ -1,11 +1,8 @@
 if window?
   ccss = window.ccss = ->
     ccss.render arguments
-
-  fs = null
 else
   ccss = exports
-  fs = require 'fs'
 
 ccss.extend = (object, properties) ->
   for key, value of properties
@@ -42,6 +39,7 @@ ccss.render = (rules) ->
   css
 
 unless window
+  fs = require 'fs'
   ccss.compileFile = (infile, outfile) ->
     rules = require process.cwd() + '/' + infile
     css = ccss.render rules
