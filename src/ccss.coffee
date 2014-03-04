@@ -1,6 +1,6 @@
 if window?
   ccss = window.ccss = ->
-    ccss.render arguments
+    ccss.render arguments...
 else
   ccss = exports
 
@@ -35,7 +35,7 @@ ccss.render = (rules) ->
         declarations += "  #{key}: #{value};\n"
 
     declarations and css += "#{selector} {\n#{declarations}}\n"
-    css += @compile nested
+    css += ccss.compile nested
   css
 
 unless window
