@@ -1,5 +1,7 @@
 if window?
-  ccss = window.ccss = {}
+  ccss = window.ccss = ->
+    ccss.render arguments
+
   fs = null
 else
   ccss = exports
